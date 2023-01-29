@@ -1,5 +1,7 @@
 package main
 
+import "fmt"
+
 func InitializeProject() {
-	PrintBanner()
+	fmt.Println("Initializing Project")
 }

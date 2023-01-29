@@ -7,7 +7,7 @@ import (
 )
 
 func main() {
-
+	PrintBanner()
 	config_param := flag.String("config", "pgpac.conf", "The file to pull the configuration from.")
 	target_param := flag.String("target", ".", "The target folder or file.")
 	server_param := flag.String("server", "", "The server from the config file to deploy the pgpac file to.")
@@ -42,6 +42,7 @@ func main() {
 	init    - initialize the folder structure for pgpac.
 	package - package the target folder into a .pgpac file to be deployed.
 	deploy  - deploy your pgpac folder or the prepackaged file to your database.
+Arguments:
 `)
 		flag.PrintDefaults()
 		os.Exit(0)
