@@ -4,8 +4,6 @@ import (
 	"flag"
 	"fmt"
 	"os"
-
-	pg_query "github.com/pganalyze/pg_query_go/v2"
 )
 
 func main() {
@@ -28,15 +26,15 @@ func main() {
 	}
 
 	commandName := flag.Args()[0]
-	config = *config_param
-	target = *target_param
-	server = *server_param
-	project = *project_param
-	host = *host_param
-	port = *port_param
-	database = *database_param
-	username = *username_param
-	password = *password_param
+	_ = *config_param
+	_ = *target_param
+	_ = *server_param
+	_ = *project_param
+	_ = *host_param
+	_ = *port_param
+	_ = *database_param
+	_ = *username_param
+	_ = *password_param
 
 	switch commandName {
 	case "help":
@@ -48,7 +46,7 @@ func main() {
 		flag.PrintDefaults()
 		os.Exit(0)
 	case "init":
-		break
+		InitializeProject()
 	case "package":
 		break
 	case "deploy":
@@ -58,14 +56,15 @@ func main() {
 		os.Exit(1)
 	}
 
-	fmt.Printf("%s\n", commandName)
+	/*
+		fmt.Printf("%s\n", commandName)
 
-	tree, err := pg_query.Parse(`
-	-- this is a comment >:)
-	select * from mytable
-	`)
-	if err != nil {
-		panic(err)
-	}
-	fmt.Printf("%s\n", tree.String())
+		tree, err := pg_query.Parse(`
+		-- this is a comment >:)
+		select * from mytable
+		`)
+		if err != nil {
+			panic(err)
+		}
+		fmt.Printf("%s\n", tree.String())*/
 }
