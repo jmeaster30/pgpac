@@ -8,7 +8,7 @@ import (
 
 func main() {
 	PrintBanner()
-	config_param := flag.String("config", "pgpac.conf", "The file to pull the configuration from.")
+	config_param := flag.String("config", "pgpac.yaml", "The file to pull the configuration from.")
 	target_param := flag.String("target", ".", "The target folder or file.")
 	server_param := flag.String("server", "", "The server from the config file to deploy the pgpac file to.")
 	project_param := flag.String("project", "", "The project from the config file to package into the pgpac file.")
@@ -26,7 +26,8 @@ func main() {
 	}
 
 	commandName := flag.Args()[0]
-	_ = *config_param
+	configFilename := *config_param
+	fmt.Printf("%s\n", configFilename)
 	_ = *target_param
 	_ = *server_param
 	_ = *project_param
@@ -47,7 +48,7 @@ Arguments:
 		flag.PrintDefaults()
 		os.Exit(0)
 	case "init":
-		InitializeProject()
+		InitializeProject(configFilename)
 	case "package":
 		break
 	case "deploy":
