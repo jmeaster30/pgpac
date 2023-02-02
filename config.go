@@ -9,31 +9,31 @@ import (
 
 // Functions for generating, loading, and validating configuration
 type ProjectConfig struct {
-	schema_directory   string
-	one_shot_directory string
-	seed_directory     string
-	project_directory  string
+	SchemaDirectory  string `yaml:"schemaDirectory"`
+	OneShotDirectory string `yaml:"oneShotDirectory"`
+	SeedDirectory    string `yaml:"seedDirectory"`
+	ProjectDirectory string `yaml:"projectDirectory"`
 }
 
 type ServerConfig struct {
-	project    string
-	connection string
-	hostname   string
-	port       string
-	database   string
-	username   string
-	password   string //should we even support storing this in the config? It may make sense but I want to leave more towards forcing the user to use this in a safe way
+	Project    string
+	Connection string
+	Hostname   string
+	Port       string
+	Database   string
+	Username   string
+	Password   string //should we even support storing this in the config? It may make sense but I want to leave more towards forcing the user to use this in a safe way
 }
 
 type PacConfig struct {
-	projects map[string]ProjectConfig
-	servers  map[string]ServerConfig
+	Projects map[string]ProjectConfig
+	Servers  map[string]ServerConfig
 }
 
 func BlankPacConfig() *PacConfig {
 	return &PacConfig{
-		projects: make(map[string]ProjectConfig),
-		servers:  make(map[string]ServerConfig),
+		Projects: make(map[string]ProjectConfig),
+		Servers:  make(map[string]ServerConfig),
 	}
 }
 
@@ -43,15 +43,12 @@ func (p *PacConfig) LoadConfig(filename string) error {
 		return err
 	}
 
-	data := make(map[string]interface{})
-	err = yaml.Unmarshal(yamlFile, &data)
+	err = yaml.Unmarshal(yamlFile, p)
 	if err != nil {
 		return err
 	}
 
-	for k, v := range data {
-		fmt.Printf("%s -> %s\n", k, v)
-	}
+	fmt.Printf("%s\n", p)
 
 	return nil
 }
