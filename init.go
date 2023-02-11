@@ -56,24 +56,28 @@ func InitializeProject(configFilename string) {
 		}
 
 		projectName := prompt("Name of project.", "MyProject")
-		useDefaultSubDirectoryNames := strings.ToLower(prompt("Would you like to use the default subdirectory names (i.e. <dir>/schema, <dir>/oneshots, <dir>/seeds)?", "Yes"))
+		useDefaultSubDirectoryNames := strings.ToLower(prompt("Would you like to use the default subdirectory names (i.e. <dir>/schema, <dir>/predeploy, <dir>/postdeploy, <dir>/seeds)?", "Yes"))
 		if useDefaultSubDirectoryNames == "yes" || useDefaultSubDirectoryNames == "y" {
 			projectFolder := prompt("Project Directory Name.", "myproject")
 			mkdir(filepath.Join(projectFolder, "schema"))
-			mkdir(filepath.Join(projectFolder, "oneshots"))
+			mkdir(filepath.Join(projectFolder, "predeploy"))
+			mkdir(filepath.Join(projectFolder, "postdeploy"))
 			mkdir(filepath.Join(projectFolder, "seeds"))
 			config.Projects[projectName] = ProjectConfig{SchemaDirectory: projectFolder}
 		} else {
 			schemaDirectory := prompt("Schema Directory Name.", "project/schema")
-			oneShotDirectory := prompt("One Shot Directory Name.", "project/oneshots")
+			preDeployDirectory := prompt("Pre Deploy Directory Name.", "project/predeploy")
+			postDeployDirectory := prompt("Post Deploy Directory Name.", "project/postdeploy")
 			seedDirectory := prompt("Seed Directory Name.", "project/seeds")
 			mkdir(schemaDirectory)
-			mkdir(oneShotDirectory)
+			mkdir(preDeployDirectory)
+			mkdir(postDeployDirectory)
 			mkdir(seedDirectory)
 			config.Projects[projectName] = ProjectConfig{
-				SchemaDirectory:  schemaDirectory,
-				OneShotDirectory: oneShotDirectory,
-				SeedDirectory:    seedDirectory,
+				SchemaDirectory:     schemaDirectory,
+				PreDeployDirectory:  preDeployDirectory,
+				PostDeployDirectory: postDeployDirectory,
+				SeedDirectory:       seedDirectory,
 			}
 		}
 		err := config.SaveConfig(selectedConfigFilename)

@@ -1,22 +1,27 @@
 projects:
     # define a project where you specifically point to each sub directory
-    - sample_project:
-        schema_directory: 'sample_project/schema'
-        one_shot_directory: 'sample_project/oneshots'
-        seed_directory: 'sample_project/seeds'
+    sampleProject:
+        deploy:
+            onFailure: restore #will automatically make backups of server prior to deploying database
+            columnRenameTolerance: 0.9
+            tableRenameTolerance: 0.9
+            removeUnusedTables: true # by default off and if on removes the tables after the post deploy oneshots
+        schemaDirectory: 'sample_project/schema'
+        oneShotDirectory: 'sample_project/oneshots'
+        seedDirectory: 'sample_project/seeds'
     # define a project using the default sub directories
-    - other_project:
+    otherProject:
         project_directory: 'other_project'
         # schema_directory: 'other_project/schema'
         # one_shot_directory: 'other_project/oneshots'
         # seed_directory: 'other_project/seeds'
 servers:
     # define server with connection string
-    - my_database
+    myDatabase:
         project: sample_project
         connection: 'psql://username:password@hostname:5432/mydatabase'
     # define server with only partial connection info
-    - other_db
+    otherDb:
         project: other_project
         hostname: 'dbserver'
         port: 5432

@@ -7,11 +7,21 @@ import (
 )
 
 // Functions for generating, loading, and validating configuration
+
+type DeployConfig struct {
+	OnFailure             string  `yaml:"onFailure,omitempty"`
+	ColumnRenameTolerance float32 `yaml:"columnRenameTolerance,omitempty"`
+	TableRenameTolerance  float32 `yaml:"tableRenameTolerance,omitempty"`
+	RemoveUnusedTables    bool    `yaml:"removeUnusedTables,omitempty"`
+}
+
 type ProjectConfig struct {
-	SchemaDirectory  string `yaml:"schemaDirectory,omitempty"`
-	OneShotDirectory string `yaml:"oneShotDirectory,omitempty"`
-	SeedDirectory    string `yaml:"seedDirectory,omitempty"`
-	ProjectDirectory string `yaml:"projectDirectory,omitempty"`
+	Deploy              DeployConfig `yaml:"deploy,omitempty"`
+	SchemaDirectory     string       `yaml:"schemaDirectory,omitempty"`
+	PreDeployDirectory  string       `yaml:"preDeployDirectory,omitempty"`
+	PostDeployDirectory string       `yaml:"postDeployDirectory,omitempty"`
+	SeedDirectory       string       `yaml:"seedDirectory,omitempty"`
+	ProjectDirectory    string       `yaml:"projectDirectory,omitempty"`
 }
 
 type ServerConfig struct {

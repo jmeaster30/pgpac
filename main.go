@@ -18,21 +18,9 @@ func main() {
 	case "package":
 		break
 	case "deploy":
-		break
+		Deploy(cli.config, cli.project)
 	default:
 		fmt.Printf("Unknown command '%s'. Expected init, package, deploy, or help.", cli.command)
 		os.Exit(1)
 	}
-
-	/*
-		fmt.Printf("%s\n", commandName)
-
-		tree, err := pg_query.Parse(`
-		-- this is a comment >:)
-		select * from mytable
-		`)
-		if err != nil {
-			panic(err)
-		}
-		fmt.Printf("%s\n", tree.String())*/
 }
