@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"io/ioutil"
 
 	"gopkg.in/yaml.v3"
@@ -9,25 +8,24 @@ import (
 
 // Functions for generating, loading, and validating configuration
 type ProjectConfig struct {
-	SchemaDirectory  string `yaml:"schemaDirectory"`
-	OneShotDirectory string `yaml:"oneShotDirectory"`
-	SeedDirectory    string `yaml:"seedDirectory"`
-	ProjectDirectory string `yaml:"projectDirectory"`
+	SchemaDirectory  string `yaml:"schemaDirectory,omitempty"`
+	OneShotDirectory string `yaml:"oneShotDirectory,omitempty"`
+	SeedDirectory    string `yaml:"seedDirectory,omitempty"`
+	ProjectDirectory string `yaml:"projectDirectory,omitempty"`
 }
 
 type ServerConfig struct {
-	Project    string
-	Connection string
-	Hostname   string
-	Port       string
-	Database   string
-	Username   string
-	Password   string //should we even support storing this in the config? It may make sense but I want to leave more towards forcing the user to use this in a safe way
+	Project    string `yaml:"project,omitempty"`
+	Connection string `yaml:"connection,omitempty"`
+	Hostname   string `yaml:"hostname,omitempty"`
+	Port       string `yaml:"port,omitempty"`
+	Database   string `yaml:"database,omitempty"`
+	Username   string `yaml:"username,omitempty"`
 }
 
 type PacConfig struct {
-	Projects map[string]ProjectConfig
-	Servers  map[string]ServerConfig
+	Projects map[string]ProjectConfig `yaml:"projects,omitempty"`
+	Servers  map[string]ServerConfig  `yaml:"servers,omitempty"`
 }
 
 func BlankPacConfig() *PacConfig {
@@ -48,7 +46,14 @@ func (p *PacConfig) LoadConfig(filename string) error {
 		return err
 	}
 
-	fmt.Printf("%s\n", p)
-
 	return nil
+}
+
+func (p *PacConfig) SaveConfig(filename string) error {
+	bytes, err := yaml.Marshal(p)
+	if err != nil {
+		return err
+	}
+
+	return ioutil.WriteFile(filename, bytes, 0600)
 }
