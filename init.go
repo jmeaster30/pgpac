@@ -63,7 +63,7 @@ func InitializeProject(configFilename string) {
 			mkdir(filepath.Join(projectFolder, "predeploy"))
 			mkdir(filepath.Join(projectFolder, "postdeploy"))
 			mkdir(filepath.Join(projectFolder, "seeds"))
-			config.Projects[projectName] = ProjectConfig{SchemaDirectory: projectFolder}
+			config.Projects[projectName] = ProjectConfig{ProjectDirectory: projectFolder}
 		} else {
 			schemaDirectory := prompt("Schema Directory Name.", "project/schema")
 			preDeployDirectory := prompt("Pre Deploy Directory Name.", "project/predeploy")

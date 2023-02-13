@@ -1,8 +1,6 @@
 package main
 
 import (
-	"fmt"
-	"log"
 	"os"
 	"path/filepath"
 
@@ -12,24 +10,30 @@ import (
 func Deploy(configFilename string, projectName string) {
 	config := BlankPacConfig()
 	if err := config.LoadConfig(configFilename); err != nil {
-		log.Fatalf("Failed to load config of name '%s'\n%s\n", configFilename, err)
+		LogError("Failed to load config of name '%s'", configFilename)
+		LogError("%s", err)
+		os.Exit(1)
 	}
 
 	if len(config.Projects) == 0 {
-		log.Fatalf("No projects specified in loaded config file.\n")
+		LogError("No projects specified in loaded config file.")
+		os.Exit(1)
 	}
 
 	if projectName == "" {
-		log.Fatalf("No project supplied. Please specify a project to deploy.\nTODO: make this select the one if there is only 1 project")
+		LogError("No project supplied. Please specify a project to deploy.\n\tTODO: make this select the one if there is only 1 project")
+		os.Exit(1)
 	}
 
 	project := config.Projects[projectName]
-	if project.SchemaDirectory != "" {
+	if project.ProjectDirectory != "" {
 		// we will be using the default folder names
-		fmt.Println("here")
-		results := BuildFileList(filepath.Join(project.SchemaDirectory, "schema"))
-		fmt.Printf("%s\n", results)
-		BuildSchema(results)
+		//predeployList := BuildFileList(filepath.Join(project.ProjectDirectory, "predeploy"))
+		//postdeployList := BuildFileList(filepath.Join(project.ProjectDirectory, "postdeploy"))
+		schemaList := BuildFileList(filepath.Join(project.ProjectDirectory, "schema"))
+		//seedList := BuildFileList(filepath.Join(project.ProjectDirectory, "seeds"))
+		LogDebug("%s", schemaList)
+		BuildSchema(schemaList)
 	}
 }
 
@@ -46,7 +50,8 @@ func BuildFileList(foldername string) []string {
 			return nil
 		})
 	if err != nil {
-		log.Fatal(err)
+		LogError("%s", err)
+		os.Exit(1)
 	}
 	return list
 }
@@ -54,20 +59,30 @@ func BuildFileList(foldername string) []string {
 func readFile(filename string) string {
 	dat, err := os.ReadFile(filename)
 	if err != nil {
-		log.Fatalf("Failed reading file '%s'\n", filename)
+		LogError("Failed reading file '%s'", filename)
+		os.Exit(1)
 	}
 	return string(dat)
 }
 
 func BuildSchema(files []string) {
 	for _, val := range files {
-		log.Printf("Processing '%s'...\n", val)
+		LogInfo("Processing '%s'...", val)
 		content := readFile(val)
 		tree, err := pg_query.Parse(content)
 		if err != nil {
-			log.Fatalf("Failed processing file '%s'...\n", val)
+			LogError("Failed processing file '%s'...", val)
+			LogError("%s", err)
+			os.Exit(1)
 		}
-		log.Printf("%s\n", tree.String())
-		log.Printf("Done Processing '%s' :)\n", val)
+
+		LogInfo("Found %d statements", len(tree.Stmts))
+		for _, val := range tree.Stmts {
+			create_stmt := val.Stmt.GetCreateStmt()
+			LogDebug("%s", create_stmt)
+		}
+
+		//log.Printf("%s\n", tree.String())
+		LogInfo("Done Processing '%s' :)", val)
 	}
 }
