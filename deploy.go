@@ -79,7 +79,19 @@ func BuildSchema(files []string) {
 		LogInfo("Found %d statements", len(tree.Stmts))
 		for _, val := range tree.Stmts {
 			create_stmt := val.Stmt.GetCreateStmt()
-			LogDebug("%s", create_stmt)
+
+			if create_stmt == nil {
+				LogWarning("Unexpected non-create statement in schema file. Ignoring...")
+				LogWarning("%s", val.Stmt)
+				continue
+			}
+
+			table := Table{
+				tableName: create_stmt.Relation.Relname,
+			}
+
+			LogDebug("%v", create_stmt)
+			LogDebug("%v", table)
 		}
 
 		//log.Printf("%s\n", tree.String())

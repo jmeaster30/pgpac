@@ -39,7 +39,7 @@ func InitializeProject(configFilename string) {
 			log.Fatal(err)
 		}
 
-		fmt.Printf("%s\n", config)
+		fmt.Printf("%v\n", config)
 	} else {
 		fmt.Println("Config file does not exist yet!")
 
