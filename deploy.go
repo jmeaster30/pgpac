@@ -79,19 +79,49 @@ func BuildSchema(files []string) {
 		LogInfo("Found %d statements", len(tree.Stmts))
 		for _, val := range tree.Stmts {
 			create_stmt := val.Stmt.GetCreateStmt()
+			enum_stmt := val.Stmt.GetCreateEnumStmt()
+			extension_stmt := val.Stmt.GetCreateExtensionStmt()
 
-			if create_stmt == nil {
+			if create_stmt == nil && enum_stmt == nil && extension_stmt == nil {
 				LogWarning("Unexpected non-create statement in schema file. Ignoring...")
 				LogWarning("%s", val.Stmt)
 				continue
 			}
 
-			table := Table{
-				tableName: create_stmt.Relation.Relname,
+			if create_stmt != nil {
+				LogDebug("CREATE TABLE")
+				table := Table{
+					tableName: create_stmt.Relation.Relname,
+				}
+
+				LogDebug("%v", create_stmt)
+				LogDebug("%v", table)
 			}
 
-			LogDebug("%v", create_stmt)
-			LogDebug("%v", table)
+			if enum_stmt != nil {
+				LogDebug("CREATE ENUM")
+				enum := Enum{
+					name:   enum_stmt.TypeName[0].GetString_().Str,
+					values: []string{},
+				}
+
+				for _, val := range enum_stmt.Vals {
+					enum.values = append(enum.values, val.GetString_().Str)
+				}
+
+				LogDebug("%v", enum_stmt)
+				LogDebug("%v", enum)
+			}
+
+			if extension_stmt != nil {
+				LogDebug("CREATE EXTENSION")
+				ext := Extension{
+					extensionName: extension_stmt.Extname,
+				}
+
+				LogDebug("%v", extension_stmt)
+				LogDebug("%v", ext)
+			}
 		}
 
 		//log.Printf("%s\n", tree.String())

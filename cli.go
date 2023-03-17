@@ -8,7 +8,6 @@ import (
 type CliFlags struct {
 	command string
 	config  string
-	target  string
 	server  string
 	project string
 	host    string

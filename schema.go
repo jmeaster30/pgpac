@@ -113,3 +113,9 @@ type Index struct {
 type Extension struct {
 	extensionName string
 }
+
+// create enum type
+type Enum struct {
+	name   string
+	values []string
+}
