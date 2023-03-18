@@ -91,22 +91,37 @@ func BuildSchema(files []string) {
 			if create_stmt != nil {
 				LogDebug("CREATE TABLE")
 				table := Table{
-					tableName: create_stmt.Relation.Relname,
+					TableName: create_stmt.Relation.Relname,
+				}
+
+				for _, val := range create_stmt.TableElts {
+					columnDefinition := val.GetColumnDef()
+
+					column := Column{
+						Name: columnDefinition.Colname,
+					}
+
+					for _, typeName := range columnDefinition.TypeName.Names {
+						column.ColumnType.TypePath = append(column.ColumnType.TypePath, typeName.GetString_().Str)
+					}
+
+					LogDebug("%v", columnDefinition)
+					table.Columns = append(table.Columns, column)
 				}
 
 				LogDebug("%v", create_stmt)
-				LogDebug("%v", table)
+				LogDebug("%s", table)
 			}
 
 			if enum_stmt != nil {
 				LogDebug("CREATE ENUM")
 				enum := Enum{
-					name:   enum_stmt.TypeName[0].GetString_().Str,
-					values: []string{},
+					Name:   enum_stmt.TypeName[0].GetString_().Str,
+					Values: []string{},
 				}
 
 				for _, val := range enum_stmt.Vals {
-					enum.values = append(enum.values, val.GetString_().Str)
+					enum.Values = append(enum.Values, val.GetString_().Str)
 				}
 
 				LogDebug("%v", enum_stmt)
@@ -116,7 +131,7 @@ func BuildSchema(files []string) {
 			if extension_stmt != nil {
 				LogDebug("CREATE EXTENSION")
 				ext := Extension{
-					extensionName: extension_stmt.Extname,
+					ExtensionName: extension_stmt.Extname,
 				}
 
 				LogDebug("%v", extension_stmt)

@@ -13,95 +13,95 @@ const (
 
 // create table
 type Table struct {
-	tableName        string
-	tableConstraints []TableConstraint
-	columns          []Column
+	TableName string
+	//tableConstraints []TableConstraint
+	Columns []Column
 }
 
 type Column struct {
-	name       string
-	columnType ColumnType
-	constraint ColumnConstraint
+	Name       string
+	ColumnType ColumnType
+	//constraint ColumnConstraint
 }
 
 type ColumnType struct {
-	baseType string
+	TypePath []string
 }
 
 type TableConstraint struct {
-	name       Optional[string]
-	check      Optional[CheckConstraint]
-	unique     Optional[UniqueConstraint]
-	primaryKey Optional[PrimaryKeyConstraint]
-	exclusion  Optional[ExclusionConstraint]
-	foreignKey Optional[ForeignKeyConstraint]
+	Name       Optional[string]
+	Check      Optional[CheckConstraint]
+	Unique     Optional[UniqueConstraint]
+	PrimaryKey Optional[PrimaryKeyConstraint]
+	Exclusion  Optional[ExclusionConstraint]
+	ForeignKey Optional[ForeignKeyConstraint]
 }
 
 type ColumnConstraint struct {
-	name              Optional[string]
-	notNull           bool
-	check             Optional[CheckConstraint]
-	defaultValue      Optional[DefaultConstraint]
-	generatedValue    Optional[GeneratedValueConstraint]
-	generatedIdentity Optional[GeneratedIdentityConstraint]
-	foreignKey        Optional[ForeignKeyConstraint]
+	Name              Optional[string]
+	NotNull           bool
+	Check             Optional[CheckConstraint]
+	DefaultValue      Optional[DefaultConstraint]
+	GeneratedValue    Optional[GeneratedValueConstraint]
+	GeneratedIdentity Optional[GeneratedIdentityConstraint]
+	ForeignKey        Optional[ForeignKeyConstraint]
 	// collation
 }
 
 type CheckConstraint struct {
-	expression string
-	noInherit  bool
+	Expression string
+	NoInherit  bool
 }
 
 type DefaultConstraint struct {
-	expression string
+	Expression string
 }
 
 type GeneratedValueConstraint struct {
-	expression string
+	Expression string
 }
 
 type GeneratedIdentityConstraint struct {
-	always bool // false is By Default
+	Always bool // false is By Default
 	// TODO sequence options
 }
 
 type UniqueConstraint struct {
-	columnNames []string // only needed for table constraints
-	nulls       bool
-	notDistinct bool
+	ColumnNames []string // only needed for table constraints
+	Nulls       bool
+	NotDistinct bool
 	// TODO index parameters
 }
 
 type PrimaryKeyConstraint struct {
-	columnNames     []string // only needed for table constraints
-	indexParameters string   // TODO
+	ColumnNames     []string // only needed for table constraints
+	IndexParameters string   // TODO
 }
 
 type ForeignKeyConstraint struct {
-	columnNames           []string // only needed for table constraints
-	referencingTableName  string
-	referencingColumnName string
-	matchFull             bool
-	matchPartial          bool
-	matchSimple           bool
-	onDeleteAction        string // TODO referential action
-	onUpdateAction        string // TODO referential action
+	ColumnNames           []string // only needed for table constraints
+	ReferencingTableName  string
+	ReferencingColumnName string
+	MatchFull             bool
+	MatchPartial          bool
+	MatchSimple           bool
+	OnDeleteAction        string // TODO referential action
+	OnUpdateAction        string // TODO referential action
 }
 
 type ExclusionConstraint struct {
-	indexType  IndexType
-	exclusions []string // seems to be a list of columnName and operator pairs
+	IndexType  IndexType
+	Exclusions []string // seems to be a list of columnName and operator pairs
 }
 
 // create index
 type Index struct {
-	name                string
-	unique              bool // only btree indexes can be set as unique
-	indexType           IndexType
-	tableName           string
-	columnNames         []string
-	includedColumnNames []string
+	Name                string
+	Unique              bool // only btree indexes can be set as unique
+	IndexType           IndexType
+	TableName           string
+	ColumnNames         []string
+	IncludedColumnNames []string
 	// TODO ordering
 	// TODO indexing expressions
 	// TODO partial indexes
@@ -109,13 +109,16 @@ type Index struct {
 	// TODO collation
 }
 
+type Type interface {
+}
+
 // create extension
 type Extension struct {
-	extensionName string
+	ExtensionName string
 }
 
 // create enum type
 type Enum struct {
-	name   string
-	values []string
+	Name   string
+	Values []string
 }

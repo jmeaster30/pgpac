@@ -4,9 +4,9 @@ create type film_rating as enum ('G', 'PG', 'PG-13', 'R', 'NC-17');
 create table film (
     film_id bigint GENERATED ALWAYS AS IDENTITY,
     title varchar(255),
-    description text,
+    description citext,
     release_year int,
-    language_id int,
+    language_id int references language(language_id),
     original_language_id int,
     rental_duration int,
     rental_rate numeric(4, 2),
