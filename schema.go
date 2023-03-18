@@ -1,5 +1,10 @@
 package main
 
+import (
+	"fmt"
+	"strings"
+)
+
 type IndexType int
 
 const (
@@ -18,15 +23,38 @@ type Table struct {
 	Columns []Column
 }
 
+func (t *Table) String() string {
+	value := fmt.Sprintf("Table: \033[34m\033[4m%s\033[0m", t.TableName)
+	for _, col := range t.Columns {
+		value += "\n\t" + col.String()
+	}
+	return value
+}
+
 type Column struct {
 	Name       string
 	ColumnType ColumnType
 	Constraint ColumnConstraint
 }
 
+func (c *Column) String() string {
+	return fmt.Sprintf("Column: \033[34m\033[4m%s\033[0m \033[1;37m[%s]\033[0m%s", c.Name, c.ColumnType.String(), c.Constraint.String())
+}
+
 type ColumnType struct {
 	TypePath []string
 	TypeMods []int // FIXME I believe these don't have to be just integers
+}
+
+func (c *ColumnType) String() string {
+	s := ""
+	for i, val := range c.TypeMods {
+		if i != 0 {
+			s += ", "
+		}
+		s += fmt.Sprint(val)
+	}
+	return fmt.Sprintf("%s(%s)", strings.Join(c.TypePath, "."), s)
 }
 
 type TableConstraint struct {
@@ -47,6 +75,22 @@ type ColumnConstraint struct {
 	GeneratedIdentity Optional[GeneratedIdentityConstraint]
 	ForeignKey        Optional[ForeignKeyConstraint]
 	// collation
+}
+
+func (c *ColumnConstraint) String() string {
+	value := ""
+	if c.NotNull {
+		value += "\t\t\033[1;31mNotNull\033[0m"
+	}
+
+	if c.ForeignKey.HasValue() {
+		value += fmt.Sprintf("\t\t\033[1;36m%s\033[0m", c.ForeignKey.Value().String())
+	}
+
+	if value == "" {
+		return ""
+	}
+	return "\n" + value
 }
 
 type CheckConstraint struct {
@@ -88,6 +132,10 @@ type ForeignKeyConstraint struct {
 	MatchSimple           bool
 	OnDeleteAction        string // TODO referential action
 	OnUpdateAction        string // TODO referential action
+}
+
+func (f ForeignKeyConstraint) String() string {
+	return fmt.Sprintf("REFERENCES %s(%s)", f.ReferencingTableName, f.ReferencingColumnName)
 }
 
 type ExclusionConstraint struct {

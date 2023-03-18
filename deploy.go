@@ -110,7 +110,7 @@ func BuildSchema(config *PacConfig, files []string) {
 					}
 
 					column.Constraint = ColumnConstraint{
-						NotNull: true,
+						NotNull: false,
 					}
 					for _, constraint := range columnDefinition.Constraints {
 						constraintNode := constraint.GetConstraint()
@@ -122,7 +122,7 @@ func BuildSchema(config *PacConfig, files []string) {
 				}
 
 				//LogDebug("%v", create_stmt)
-				LogDebug(config.Options.LogLevel, "%v", table)
+				LogDebug(config.Options.LogLevel, "Table Result\n%s", table.String())
 			}
 
 			if enum_stmt != nil {
@@ -167,6 +167,8 @@ func BuildConstraint(config *PacConfig, columnConstraint *ColumnConstraint, cons
 			OnDeleteAction:        constraintNode.FkDelAction,
 			OnUpdateAction:        constraintNode.FkUpdAction,
 		})
+	} else if constraintNode.Contype.String() == "CONSTR_NOTNULL" {
+		columnConstraint.NotNull = true
 	} else {
 		LogWarning(config.Options.LogLevel, "Unimplemented constraint node type '%s'", constraintNode.Contype.String())
 	}
