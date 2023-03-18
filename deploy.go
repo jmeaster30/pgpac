@@ -161,14 +161,26 @@ func BuildConstraint(config *PacConfig, columnConstraint *ColumnConstraint, cons
 		columnConstraint.ForeignKey = Some(ForeignKeyConstraint{
 			ReferencingTableName:  constraintNode.Pktable.Relname,
 			ReferencingColumnName: constraintNode.PkAttrs[0].GetString_().Str, // FIXME can reference multiple columns
-			MatchFull:             constraintNode.FkMatchtype == "f",
-			MatchPartial:          constraintNode.FkMatchtype == "p",
-			MatchSimple:           constraintNode.FkMatchtype == "s",
+			MatchType:             constraintNode.FkMatchtype,
 			OnDeleteAction:        constraintNode.FkDelAction,
 			OnUpdateAction:        constraintNode.FkUpdAction,
 		})
 	} else if constraintNode.Contype.String() == "CONSTR_NOTNULL" {
 		columnConstraint.NotNull = true
+	} else if constraintNode.Contype.String() == "CONSTR_IDENTITY" {
+		columnConstraint.NotNull = true
+		columnConstraint.Identity = Some(IdentityConstraint{
+			GeneratedAlways: constraintNode.GeneratedWhen == "a",
+		})
+	} else if constraintNode.Contype.String() == "CONSTR_GENERATED" {
+		columnConstraint.GeneratedValue = Some(GeneratedValueConstraint{
+			GeneratedAlways: constraintNode.GeneratedWhen == "a",
+			Expression:      constraintNode.RawExpr.String(),
+		})
+	} else if constraintNode.Contype.String() == "CONSTR_DEFAULT" {
+		columnConstraint.DefaultValue = Some(DefaultConstraint{
+			Expression: constraintNode.RawExpr.String(),
+		})
 	} else {
 		LogWarning(config.Options.LogLevel, "Unimplemented constraint node type '%s'", constraintNode.Contype.String())
 	}

@@ -67,30 +67,38 @@ type TableConstraint struct {
 }
 
 type ColumnConstraint struct {
-	Name              Optional[string]
-	NotNull           bool
-	Check             Optional[CheckConstraint]
-	DefaultValue      Optional[DefaultConstraint]
-	GeneratedValue    Optional[GeneratedValueConstraint]
-	GeneratedIdentity Optional[GeneratedIdentityConstraint]
-	ForeignKey        Optional[ForeignKeyConstraint]
+	Name           Optional[string]
+	NotNull        bool
+	Check          Optional[CheckConstraint]
+	DefaultValue   Optional[DefaultConstraint]
+	GeneratedValue Optional[GeneratedValueConstraint]
+	Identity       Optional[IdentityConstraint]
+	ForeignKey     Optional[ForeignKeyConstraint]
 	// collation
 }
 
 func (c *ColumnConstraint) String() string {
 	value := ""
 	if c.NotNull {
-		value += "\t\t\033[1;31mNotNull\033[0m"
+		value += "\n\t\t\033[1;31mNotNull\033[0m"
 	}
-
 	if c.ForeignKey.HasValue() {
-		value += fmt.Sprintf("\t\t\033[1;36m%s\033[0m", c.ForeignKey.Value().String())
+		value += fmt.Sprintf("\n\t\t\033[1;36m%s\033[0m", c.ForeignKey.Value().String())
+	}
+	if c.Identity.HasValue() {
+		value += fmt.Sprintf("\n\t\t\033[1;32m%s\033[0m", c.Identity.Value().String())
+	}
+	if c.DefaultValue.HasValue() {
+		value += fmt.Sprintf("\n\t\t\033[1;32m%s\033[0m", c.DefaultValue.Value().String())
+	}
+	if c.GeneratedValue.HasValue() {
+		value += fmt.Sprintf("\n\t\t\033[1;32m%s\033[0m", c.GeneratedValue.Value().String())
 	}
 
 	if value == "" {
 		return ""
 	}
-	return "\n" + value
+	return value
 }
 
 type CheckConstraint struct {
@@ -102,13 +110,34 @@ type DefaultConstraint struct {
 	Expression string
 }
 
-type GeneratedValueConstraint struct {
-	Expression string
+func (d DefaultConstraint) String() string {
+	return fmt.Sprintf("Default '%s'", d.Expression)
 }
 
-type GeneratedIdentityConstraint struct {
-	Always bool // false is By Default
+type GeneratedValueConstraint struct {
+	GeneratedAlways bool
+	Expression      string
+}
+
+func (g GeneratedValueConstraint) String() string {
+	defaultString := "By Default"
+	if g.GeneratedAlways {
+		defaultString = "Always"
+	}
+	return fmt.Sprintf("Generated %s as '%s'", defaultString, g.Expression)
+}
+
+type IdentityConstraint struct {
+	GeneratedAlways bool // false is By Default
 	// TODO sequence options
+}
+
+func (i IdentityConstraint) String() string {
+	defaultString := "By Default"
+	if i.GeneratedAlways {
+		defaultString = "Always"
+	}
+	return fmt.Sprintf("Identity Generated %s", defaultString)
 }
 
 type UniqueConstraint struct {
@@ -127,15 +156,14 @@ type ForeignKeyConstraint struct {
 	ColumnNames           []string // only needed for table constraints
 	ReferencingTableName  string
 	ReferencingColumnName string // FIXME can reference multiple columns
-	MatchFull             bool
-	MatchPartial          bool
-	MatchSimple           bool
+	MatchType             string // "f", "p", or "s"
 	OnDeleteAction        string // TODO referential action
 	OnUpdateAction        string // TODO referential action
 }
 
 func (f ForeignKeyConstraint) String() string {
-	return fmt.Sprintf("REFERENCES %s(%s)", f.ReferencingTableName, f.ReferencingColumnName)
+
+	return fmt.Sprintf("References %s(%s) MatchType: '%s'", f.ReferencingTableName, f.ReferencingColumnName, f.MatchType)
 }
 
 type ExclusionConstraint struct {
