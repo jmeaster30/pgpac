@@ -87,6 +87,7 @@ func contains(s []string, e string) bool {
 func (p *PacConfig) validateConfig() error {
 	errorMessages := []string{}
 
+	// FIXME: make it so this goes through the whole pac config object
 	optionsType := reflect.TypeOf(p.Options)
 	for i := 0; i < optionsType.NumField(); i++ {
 		field := optionsType.Field(i)

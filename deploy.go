@@ -109,6 +109,14 @@ func BuildSchema(config *PacConfig, files []string) {
 						column.ColumnType.TypeMods = append(column.ColumnType.TypeMods, int(typeMod.GetAConst().Val.GetInteger().Ival))
 					}
 
+					column.Constraint = ColumnConstraint{
+						NotNull: true,
+					}
+					for _, constraint := range columnDefinition.Constraints {
+						constraintNode := constraint.GetConstraint()
+						BuildConstraint(config, &column.Constraint, constraintNode)
+					}
+
 					LogDebug(config.Options.LogLevel, "%v", columnDefinition)
 					table.Columns = append(table.Columns, column)
 				}
@@ -145,5 +153,21 @@ func BuildSchema(config *PacConfig, files []string) {
 
 		//log.Printf("%s\n", tree.String())
 		LogInfo(config.Options.LogLevel, "Done Processing '%s' :)", val)
+	}
+}
+
+func BuildConstraint(config *PacConfig, columnConstraint *ColumnConstraint, constraintNode *pg_query.Constraint) {
+	if constraintNode.Contype.String() == "CONSTR_FOREIGN" {
+		columnConstraint.ForeignKey = Some(ForeignKeyConstraint{
+			ReferencingTableName:  constraintNode.Pktable.Relname,
+			ReferencingColumnName: constraintNode.PkAttrs[0].GetString_().Str, // FIXME can reference multiple columns
+			MatchFull:             constraintNode.FkMatchtype == "f",
+			MatchPartial:          constraintNode.FkMatchtype == "p",
+			MatchSimple:           constraintNode.FkMatchtype == "s",
+			OnDeleteAction:        constraintNode.FkDelAction,
+			OnUpdateAction:        constraintNode.FkUpdAction,
+		})
+	} else {
+		LogWarning(config.Options.LogLevel, "Unimplemented constraint node type '%s'", constraintNode.Contype.String())
 	}
 }

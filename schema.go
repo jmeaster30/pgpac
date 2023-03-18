@@ -21,7 +21,7 @@ type Table struct {
 type Column struct {
 	Name       string
 	ColumnType ColumnType
-	//constraint ColumnConstraint
+	Constraint ColumnConstraint
 }
 
 type ColumnType struct {
@@ -82,7 +82,7 @@ type PrimaryKeyConstraint struct {
 type ForeignKeyConstraint struct {
 	ColumnNames           []string // only needed for table constraints
 	ReferencingTableName  string
-	ReferencingColumnName string
+	ReferencingColumnName string // FIXME can reference multiple columns
 	MatchFull             bool
 	MatchPartial          bool
 	MatchSimple           bool
