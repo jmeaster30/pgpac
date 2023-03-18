@@ -26,6 +26,7 @@ type Column struct {
 
 type ColumnType struct {
 	TypePath []string
+	TypeMods []int // FIXME I believe these don't have to be just integers
 }
 
 type TableConstraint struct {

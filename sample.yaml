@@ -1,3 +1,5 @@
 projects:
     MyProject:
         projectDirectory: myproject
+options:
+    logLevel: debug

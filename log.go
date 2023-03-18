@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 	"time"
 )
 
@@ -28,23 +29,34 @@ func (lvl MyLogLevel) String() string {
 	return "----"
 }
 
-func LogDebug(message string, args ...any) {
-	Log(MyLogDebug, message, args...)
+func (lvl MyLogLevel) ShouldPrint(minimumLogLevel string) bool {
+	if lvl == MyLogDebug && (strings.ToLower(minimumLogLevel) == "info" || strings.ToLower(minimumLogLevel) == "warn" || strings.ToLower(minimumLogLevel) == "error") {
+		return false
+	} else if lvl == MyLogInfo && (strings.ToLower(minimumLogLevel) == "warn" || strings.ToLower(minimumLogLevel) == "error") {
+		return false
+	} else if lvl == MyLogWarn && strings.ToLower(minimumLogLevel) == "error" {
+		return false
+	}
+	return true
 }
 
-func LogInfo(message string, args ...any) {
-	Log(MyLogInfo, message, args...)
+func LogDebug(minimumLogLevel string, message string, args ...any) {
+	Log(minimumLogLevel, MyLogDebug, message, args...)
 }
 
-func LogWarning(message string, args ...any) {
-	Log(MyLogWarn, message, args...)
+func LogInfo(minimumLogLevel string, message string, args ...any) {
+	Log(minimumLogLevel, MyLogInfo, message, args...)
 }
 
-func LogError(message string, args ...any) {
-	Log(MyLogError, message, args...)
+func LogWarning(minimumLogLevel string, message string, args ...any) {
+	Log(minimumLogLevel, MyLogWarn, message, args...)
 }
 
-func Log(level MyLogLevel, message string, args ...any) {
+func LogError(minimumLogLevel string, message string, args ...any) {
+	Log(minimumLogLevel, MyLogError, message, args...)
+}
+
+func Log(minimumLogLevel string, level MyLogLevel, message string, args ...any) {
 	fullmessage := fmt.Sprintf(message, args...)
 	ts := time.Now().Format("2006-01-02 15:04:05")
 	color := "\033[0m"
@@ -58,13 +70,15 @@ func Log(level MyLogLevel, message string, args ...any) {
 		color = "\033[0;31m"
 	}
 
-	fmt.Printf("\033[0;32m%s %s[%s]\033[0m %s\n", ts, color, level.String(), fullmessage)
+	if level.ShouldPrint(minimumLogLevel) {
+		fmt.Printf("\033[0;32m%s %s[%s]\033[0m %s\n", ts, color, level.String(), fullmessage)
+	}
 }
 
 func PrettyPrint(s interface{}) string {
 	json, err := json.MarshalIndent(s, "", "  ")
 	if err != nil {
-		LogError("INTERNAL ERROR: Failed to pretty print object :(")
+		LogError("error", "INTERNAL ERROR: Failed to pretty print object :(")
 		return "<ERROR>"
 	}
 	return string(json)
