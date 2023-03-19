@@ -15,6 +15,7 @@ There are a lot of tools for database deployments. I have used a few of these to
 - Backup every bit of change so we don't accidentally lose data.
 - Smart detection of seeding data changes
 - Configuration of pre deploy and post deploy scripts for the purpose of oneshot type scripts
+- Automatic reversible deployments
 
 ### Things I don't like
 
@@ -27,6 +28,7 @@ There are a lot of tools for database deployments. I have used a few of these to
 
 - Reversible migrations
   - Never would reverse production databases because of data loss without extra tools for backing up database
+  - this property is nice but should be automatic instead of requiring a manual script to make it reversible
 - Change history
   - Already use git which tracks the change history
 
