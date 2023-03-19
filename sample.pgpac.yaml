@@ -26,3 +26,5 @@ servers:
         hostname: 'dbserver'
         port: 5432
         database: 'mydb'
+options:
+    logLevel: warn

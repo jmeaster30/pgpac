@@ -2,6 +2,7 @@ package main
 
 import (
 	"os"
+	"path"
 	"path/filepath"
 
 	pg_query "github.com/pganalyze/pg_query_go/v2"
@@ -9,6 +10,7 @@ import (
 
 func Deploy(configFilename string, projectName string) {
 	config := BlankPacConfig()
+	configFolder := path.Dir(configFilename)
 	if err := config.LoadConfig(configFilename); err != nil {
 		LogError("error", "Failed to load config of name '%s'", configFilename)
 		LogError("error", "%s", err)
@@ -28,10 +30,10 @@ func Deploy(configFilename string, projectName string) {
 	project := config.Projects[projectName]
 	if project.ProjectDirectory != "" {
 		// we will be using the default folder names
-		//predeployList := BuildFileList(filepath.Join(project.ProjectDirectory, "predeploy"))
-		//postdeployList := BuildFileList(filepath.Join(project.ProjectDirectory, "postdeploy"))
-		schemaList := BuildFileList(config, filepath.Join(project.ProjectDirectory, "schema"))
-		//seedList := BuildFileList(filepath.Join(project.ProjectDirectory, "seeds"))
+		//predeployList := BuildFileList(filepath.Join(configFolder, project.ProjectDirectory, "predeploy"))
+		//postdeployList := BuildFileList(filepath.Join(configFolder, project.ProjectDirectory, "postdeploy"))
+		schemaList := BuildFileList(config, filepath.Join(configFolder, project.ProjectDirectory, "schema"))
+		//seedList := BuildFileList(filepath.Join(configFolder, project.ProjectDirectory, "seeds"))
 		LogDebug(config.Options.LogLevel, "%s", schemaList)
 		BuildSchema(config, schemaList)
 	}
@@ -96,6 +98,11 @@ func BuildSchema(config *PacConfig, files []string) {
 
 				for _, val := range create_stmt.TableElts {
 					columnDefinition := val.GetColumnDef()
+
+					if columnDefinition == nil {
+						LogWarning(config.Options.LogLevel, "UNSUPPORTED TABLE ELEMENT: %v", val)
+						continue
+					}
 
 					column := Column{
 						Name: columnDefinition.Colname,
@@ -167,6 +174,8 @@ func BuildConstraint(config *PacConfig, columnConstraint *ColumnConstraint, cons
 		})
 	} else if constraintNode.Contype.String() == "CONSTR_NOTNULL" {
 		columnConstraint.NotNull = true
+	} else if constraintNode.Contype.String() == "CONSTR_NULL" {
+		columnConstraint.NotNull = false
 	} else if constraintNode.Contype.String() == "CONSTR_IDENTITY" {
 		columnConstraint.NotNull = true
 		columnConstraint.Identity = Some(IdentityConstraint{
