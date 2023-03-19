@@ -26,7 +26,7 @@ There are a lot of tools for database deployments. I have used a few of these to
 ### Things I don't need
 
 - Reversible migrations
-  - Never would reverse production databases anyway
+  - Never would reverse production databases because of data loss without extra tools for backing up database
 - Change history
   - Already use git which tracks the change history
 
