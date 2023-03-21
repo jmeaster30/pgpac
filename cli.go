@@ -65,21 +65,69 @@ func ParseCli() CliFlags {
 			flags.command = flag
 		} else {
 			switch flag {
+			case "-c":
+				fallthrough
+			case "-config":
+				fallthrough
+			case "--config":
+				fallthrough
 			case "config":
 				flags.config = args[i+1]
+			case "-s":
+				fallthrough
+			case "-server":
+				fallthrough
+			case "--server":
+				fallthrough
 			case "server":
 				flags.server = args[i+1]
+			case "-t":
+				fallthrough
+			case "-project":
+				fallthrough
+			case "--project":
+				fallthrough
 			case "project":
 				flags.project = args[i+1]
+			case "-h":
+				fallthrough
+			case "-host":
+				fallthrough
+			case "--host":
+				fallthrough
 			case "host":
 				flags.host = args[i+1]
+			case "-p":
+				fallthrough
+			case "-port":
+				fallthrough
+			case "--port":
+				fallthrough
 			case "port":
 				flags.port = args[i+1]
-			case "db":
+			case "-d":
+				fallthrough
+			case "-database":
+				fallthrough
+			case "--database":
+				fallthrough
+			case "database":
 				flags.db = args[i+1]
+			case "-u":
+				fallthrough
+			case "-user":
+				fallthrough
+			case "--user":
+				fallthrough
 			case "user":
 				flags.user = args[i+1]
-			case "pass":
+			case "-pass":
+				fallthrough
+			case "-password":
+				fallthrough
+			case "--password":
+				fallthrough
+			case "password":
 				flags.pass = args[i+1]
 			}
 			i += 1

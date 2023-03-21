@@ -27,7 +27,10 @@ func Deploy(configFilename string, projectName string) {
 		os.Exit(1)
 	}
 
-	project := config.Projects[projectName]
+	project, prs := config.Projects[projectName]
+	if !prs {
+		LogError("error", "Project '%s' was not found in the config file '%s'.", projectName, configFilename)
+	}
 	if project.ProjectDirectory != "" {
 		// we will be using the default folder names
 		//predeployList := BuildFileList(filepath.Join(configFolder, project.ProjectDirectory, "predeploy"))
