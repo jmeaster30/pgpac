@@ -1,7 +1,10 @@
 package main
 
 type Plan struct {
-	Tables     []Table
-	Types      []Type
-	Extensions []Extension
+	idToObjectMap      map[int64]SchemaObject
+	parallelObjectList [][]int64
+}
+
+func (p *Plan) BuildPlan(objs []SchemaObject) {
+
 }

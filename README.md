@@ -72,3 +72,5 @@ Allow for using both csvs or sql files of insert statements. Checks for adding, 
 ### Schema
 
 I think this is pretty straight forward. Just need to make sure we allow for organizing in folders but the schema plan still is one unit.
+
+Views, stored procedures, functions, and database triggers can probably always be dropped and remade. We could store a hash of the asts of these objects so we can easily query if they are different. Not really sure if Postgres would give us that kind of info.

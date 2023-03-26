@@ -13,4 +13,4 @@ create table staff (
 );
 
 create index idx_staff_store on staff(store_id);
-create index idx_staff_address on address(address_id);
+create index idx_staff_address on staff(address_id);

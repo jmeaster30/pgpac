@@ -6,7 +6,7 @@ create table customer (
     email citext,
     address_id bigint not null references address(address_id),
     active boolean not null default true,
-    create_date datetime not null,
+    create_date timestamp not null,
     last_update timestamp default current_timestamp
 );
 

@@ -56,6 +56,12 @@ func LogError(minimumLogLevel string, message string, args ...any) {
 	Log(minimumLogLevel, MyLogError, message, args...)
 }
 
+func LogAssert(minimumLogLevel string, shouldPrint bool, message string, args ...any) {
+	if shouldPrint {
+		Log(minimumLogLevel, MyLogError, "\033[1;31mASSERTION FAILED!!!\033[0m "+message, args...)
+	}
+}
+
 func Log(minimumLogLevel string, level MyLogLevel, message string, args ...any) {
 	fullmessage := fmt.Sprintf(message, args...)
 	ts := time.Now().Format("2006-01-02 15:04:05")

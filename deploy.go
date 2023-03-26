@@ -38,7 +38,8 @@ func Deploy(configFilename string, projectName string) {
 		schemaList := BuildFileList(config, filepath.Join(configFolder, project.ProjectDirectory, "schema"))
 		//seedList := BuildFileList(filepath.Join(configFolder, project.ProjectDirectory, "seeds"))
 		LogDebug(config.Options.LogLevel, "%s", schemaList)
-		BuildSchema(config, schemaList)
+		_ = BuildSchema(config, schemaList)
+
 	}
 }
 
@@ -70,7 +71,9 @@ func readFile(config *PacConfig, filename string) string {
 	return string(dat)
 }
 
-func BuildSchema(config *PacConfig, files []string) {
+func BuildSchema(config *PacConfig, files []string) []SchemaObject {
+	results := []SchemaObject{}
+
 	for _, val := range files {
 		LogInfo(config.Options.LogLevel, "Processing '%s'...", val)
 		content := readFile(config, val)
@@ -84,59 +87,81 @@ func BuildSchema(config *PacConfig, files []string) {
 		LogInfo(config.Options.LogLevel, "Found %d statements", len(tree.Stmts))
 		for _, val := range tree.Stmts {
 			create_stmt := val.Stmt.GetCreateStmt()
-			enum_stmt := val.Stmt.GetCreateEnumStmt()
-			extension_stmt := val.Stmt.GetCreateExtensionStmt()
-
-			if create_stmt == nil && enum_stmt == nil && extension_stmt == nil {
-				LogWarning(config.Options.LogLevel, "Unexpected non-create statement in schema file. Ignoring...")
-				LogWarning(config.Options.LogLevel, "%s", val.Stmt)
-				continue
-			}
-
 			if create_stmt != nil {
-				LogDebug(config.Options.LogLevel, "CREATE TABLE")
 				table := Table{
 					TableName: create_stmt.Relation.Relname,
 				}
 
 				for _, val := range create_stmt.TableElts {
 					columnDefinition := val.GetColumnDef()
+					if columnDefinition != nil {
+						column := Column{
+							Name:      columnDefinition.Colname,
+							TableName: table.TableName,
+						}
 
-					if columnDefinition == nil {
-						LogWarning(config.Options.LogLevel, "UNSUPPORTED TABLE ELEMENT: %v", val)
+						for _, typeName := range columnDefinition.TypeName.Names {
+							column.ColumnType.TypePath = append(column.ColumnType.TypePath, typeName.GetString_().Str)
+						}
+
+						for _, typeMod := range columnDefinition.TypeName.Typmods {
+							column.ColumnType.TypeMods = append(column.ColumnType.TypeMods, int(typeMod.GetAConst().Val.GetInteger().Ival))
+						}
+
+						column.Constraint = ColumnConstraint{
+							NotNull: false,
+						}
+						for _, constraint := range columnDefinition.Constraints {
+							constraintNode := constraint.GetConstraint()
+							BuildColumnConstraint(config, &column.Constraint, constraintNode)
+						}
+
+						table.Columns = append(table.Columns, column)
+						results = append(results, column)
 						continue
 					}
 
-					column := Column{
-						Name: columnDefinition.Colname,
+					tableConstraint := val.GetConstraint()
+					if tableConstraint != nil {
+						//LogDebug(config.Options.LogLevel, "Found table constraint: %+v", tableConstraint)
+						BuildTableConstraint(config, &table.TableConstraint, tableConstraint)
+						continue
 					}
 
-					for _, typeName := range columnDefinition.TypeName.Names {
-						column.ColumnType.TypePath = append(column.ColumnType.TypePath, typeName.GetString_().Str)
-					}
-
-					for _, typeMod := range columnDefinition.TypeName.Typmods {
-						column.ColumnType.TypeMods = append(column.ColumnType.TypeMods, int(typeMod.GetAConst().Val.GetInteger().Ival))
-					}
-
-					column.Constraint = ColumnConstraint{
-						NotNull: false,
-					}
-					for _, constraint := range columnDefinition.Constraints {
-						constraintNode := constraint.GetConstraint()
-						BuildConstraint(config, &column.Constraint, constraintNode)
-					}
-
-					LogDebug(config.Options.LogLevel, "%v", columnDefinition)
-					table.Columns = append(table.Columns, column)
+					LogWarning(config.Options.LogLevel, "IGNORING UNSUPPORTED TABLE ELEMENT: %+v", val)
+					continue
 				}
 
-				//LogDebug("%v", create_stmt)
 				LogDebug(config.Options.LogLevel, "Table Result\n%s", table.String())
+				results = append(results, table)
+				continue
 			}
 
+			index_stmt := val.Stmt.GetIndexStmt()
+			if index_stmt != nil {
+				index := Index{
+					Name:        index_stmt.Idxname,
+					IndexType:   index_stmt.AccessMethod,
+					TableName:   index_stmt.Relation.Relname,
+					IndexParams: []IndexParam{},
+				}
+
+				// TODO add asserts for the stuff we haven't implemented
+
+				for _, param := range index_stmt.IndexParams {
+					index_elem := param.GetIndexElem()
+					index.IndexParams = append(index.IndexParams, IndexParam{
+						ColumnName: index_elem.Name,
+					})
+				}
+
+				LogDebug(config.Options.LogLevel, "%+v", index)
+				results = append(results, index)
+				continue
+			}
+
+			enum_stmt := val.Stmt.GetCreateEnumStmt()
 			if enum_stmt != nil {
-				LogDebug(config.Options.LogLevel, "CREATE ENUM")
 				enum := Enum{
 					Name:   enum_stmt.TypeName[0].GetString_().Str,
 					Values: []string{},
@@ -146,28 +171,41 @@ func BuildSchema(config *PacConfig, files []string) {
 					enum.Values = append(enum.Values, val.GetString_().Str)
 				}
 
-				LogDebug(config.Options.LogLevel, "%v", enum_stmt)
 				LogDebug(config.Options.LogLevel, "%v", enum)
+				results = append(results, enum)
+				continue
 			}
 
+			extension_stmt := val.Stmt.GetCreateExtensionStmt()
 			if extension_stmt != nil {
-				LogDebug(config.Options.LogLevel, "CREATE EXTENSION")
 				ext := Extension{
 					ExtensionName: extension_stmt.Extname,
 				}
 
-				LogDebug(config.Options.LogLevel, "%v", extension_stmt)
 				LogDebug(config.Options.LogLevel, "%v", ext)
+				results = append(results, ext)
+				continue
 			}
+
+			view_stmt := val.Stmt.GetViewStmt()
+			if view_stmt != nil {
+				LogWarning(config.Options.LogLevel, "FOUND VIEW - Unimplemented")
+				continue
+			}
+
+			LogWarning(config.Options.LogLevel, "Unexpected non-create statement in schema file. Ignoring...")
+			LogWarning(config.Options.LogLevel, "%s", val.Stmt)
 		}
 
-		//log.Printf("%s\n", tree.String())
 		LogInfo(config.Options.LogLevel, "Done Processing '%s' :)", val)
 	}
+
+	return results
 }
 
-func BuildConstraint(config *PacConfig, columnConstraint *ColumnConstraint, constraintNode *pg_query.Constraint) {
+func BuildColumnConstraint(config *PacConfig, columnConstraint *ColumnConstraint, constraintNode *pg_query.Constraint) {
 	if constraintNode.Contype.String() == "CONSTR_FOREIGN" {
+		LogAssert(config.Options.LogLevel, len(constraintNode.PkAttrs) != 1, "Unhandled amount of foreign key references %d. %+v", len(constraintNode.FkAttrs), constraintNode)
 		columnConstraint.ForeignKey = Some(ForeignKeyConstraint{
 			ReferencingTableName:  constraintNode.Pktable.Relname,
 			ReferencingColumnName: constraintNode.PkAttrs[0].GetString_().Str, // FIXME can reference multiple columns
@@ -175,6 +213,10 @@ func BuildConstraint(config *PacConfig, columnConstraint *ColumnConstraint, cons
 			OnDeleteAction:        constraintNode.FkDelAction,
 			OnUpdateAction:        constraintNode.FkUpdAction,
 		})
+	} else if constraintNode.Contype.String() == "CONSTR_PRIMARY" {
+		columnConstraint.PrimaryKey = Some(PrimaryKeyConstraint{})
+	} else if constraintNode.Contype.String() == "CONSTR_UNIQUE" {
+		columnConstraint.Unique = Some(UniqueConstraint{})
 	} else if constraintNode.Contype.String() == "CONSTR_NOTNULL" {
 		columnConstraint.NotNull = true
 	} else if constraintNode.Contype.String() == "CONSTR_NULL" {
@@ -195,5 +237,40 @@ func BuildConstraint(config *PacConfig, columnConstraint *ColumnConstraint, cons
 		})
 	} else {
 		LogWarning(config.Options.LogLevel, "Unimplemented constraint node type '%s'", constraintNode.Contype.String())
+		LogWarning(config.Options.LogLevel, "%+v", constraintNode)
+	}
+}
+
+func BuildTableConstraint(config *PacConfig, tableConstraint *TableConstraint, constraintNode *pg_query.Constraint) {
+	if constraintNode.Contype.String() == "CONSTR_FOREIGN" {
+		LogAssert(config.Options.LogLevel, len(constraintNode.FkAttrs) != 1, "Unhandled amount of foreign key sources %d. %+v", len(constraintNode.FkAttrs), constraintNode)
+		LogAssert(config.Options.LogLevel, len(constraintNode.PkAttrs) != 1, "Unhandled amount of foreign key references %d. %+v", len(constraintNode.FkAttrs), constraintNode)
+		tableConstraint.ForeignKey = Some(ForeignKeyConstraint{
+			ColumnName:            constraintNode.FkAttrs[0].GetString_().Str, // FIXME can reference multiple columns
+			ReferencingTableName:  constraintNode.Pktable.Relname,
+			ReferencingColumnName: constraintNode.PkAttrs[0].GetString_().Str, // FIXME can reference multiple columns
+			MatchType:             constraintNode.FkMatchtype,
+			OnDeleteAction:        constraintNode.FkDelAction,
+			OnUpdateAction:        constraintNode.FkUpdAction,
+		})
+	} else if constraintNode.Contype.String() == "CONSTR_PRIMARY" {
+		columnNames := []string{}
+		for _, s := range constraintNode.Keys {
+			columnNames = append(columnNames, s.GetString_().Str)
+		}
+		tableConstraint.PrimaryKey = Some(PrimaryKeyConstraint{
+			ColumnNames: columnNames,
+		})
+	} else if constraintNode.Contype.String() == "CONSTR_UNIQUE" {
+		keys := []string{}
+		for _, key := range constraintNode.Keys {
+			keys = append(keys, key.GetString_().Str)
+		}
+		tableConstraint.Unique = Some(UniqueConstraint{
+			ColumnNames: keys,
+		})
+	} else {
+		LogWarning(config.Options.LogLevel, "Unimplemented constraint node type '%s'", constraintNode.Contype.String())
+		LogWarning(config.Options.LogLevel, "%+v", constraintNode)
 	}
 }
