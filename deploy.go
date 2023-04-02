@@ -4,11 +4,12 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"strconv"
 
 	pg_query "github.com/pganalyze/pg_query_go/v2"
 )
 
-func Deploy(configFilename string, projectName string) {
+func Deploy(configFilename string, projectName string, host string, port string, user string, pass string, db string) {
 	config := BlankPacConfig()
 	configFolder := path.Dir(configFilename)
 	if err := config.LoadConfig(configFilename); err != nil {
@@ -38,9 +39,17 @@ func Deploy(configFilename string, projectName string) {
 		schemaList := BuildFileList(config, filepath.Join(configFolder, project.ProjectDirectory, "schema"))
 		//seedList := BuildFileList(filepath.Join(configFolder, project.ProjectDirectory, "seeds"))
 		LogDebug(config.Options.LogLevel, "%s", schemaList)
-		_ = BuildSchema(config, schemaList)
-
+		schemaObjects := BuildSchema(config, schemaList)
+		_ = BuildPlan(config, schemaObjects, host, uint16conv(port), db, user, pass)
 	}
+}
+
+func uint16conv(value string) uint16 {
+	ui64, err := strconv.ParseUint(value, 10, 64)
+	if err != nil {
+		panic(err)
+	}
+	return uint16(ui64)
 }
 
 func BuildFileList(config *PacConfig, foldername string) []string {

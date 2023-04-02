@@ -18,7 +18,7 @@ func main() {
 	case "package":
 		break
 	case "deploy":
-		Deploy(cli.config, cli.project)
+		Deploy(cli.config, cli.project, cli.host, cli.port, cli.user, cli.pass, cli.db)
 	default:
 		fmt.Printf("Unknown command '%s'. Expected init, package, deploy, or help.", cli.command)
 		os.Exit(1)

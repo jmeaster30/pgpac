@@ -16,6 +16,7 @@ type DeployConfig struct {
 	ColumnRenameTolerance float32 `yaml:"columnRenameTolerance,omitempty"`
 	TableRenameTolerance  float32 `yaml:"tableRenameTolerance,omitempty"`
 	RemoveUnusedTables    bool    `yaml:"removeUnusedTables,omitempty"`
+	SchemaName            string  `yaml:"schemaName,omitempty"`
 }
 
 type ProjectConfig struct {
